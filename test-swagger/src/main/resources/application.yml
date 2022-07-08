@@ -1,0 +1,12 @@
+#springboot 启动参数
+server:
+  port: 8080
+  servlet:
+    context-path: /swagger
+#springboot 集成Swagger的集成参数
+swagger:
+  enabled: true
+  base-package: com.xuecheng.swagger.controller
+  title: swagger测试工程文档
+  description: swagger测试工程文档-描述
+  version: 1.0
