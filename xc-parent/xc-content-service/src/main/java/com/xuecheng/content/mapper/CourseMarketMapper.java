@@ -1,8 +1,7 @@
 package com.xuecheng.content.mapper;
 
-import com.xuecheng.content.entity.CourseMarketDTO;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
-import org.springframework.stereotype.Repository;
+import com.xuecheng.content.entity.CourseMarket;
 
 /**
  * <p>
@@ -11,6 +10,6 @@ import org.springframework.stereotype.Repository;
  *
  * @author itcast
  */
-public interface CourseMarketMapper extends BaseMapper<CourseMarketDTO> {
+public interface CourseMarketMapper extends BaseMapper<CourseMarket> {
 
 }
