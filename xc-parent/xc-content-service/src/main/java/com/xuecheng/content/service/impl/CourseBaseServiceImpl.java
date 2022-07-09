@@ -31,7 +31,7 @@ import java.util.List;
 public class CourseBaseServiceImpl extends ServiceImpl<CourseBaseMapper, CourseBase> implements CourseBaseService {
 
     @Override
-    public PageVO queryCourseBaseList(PageRequestParams params, QueryCourseBaseModel model, Long companyId) {
+    public PageVO queryCourseBaseList(PageRequestParams params, QueryCourseBaseModel model,Long companyId) {
         //1.判断传入数据params是否不为空
         //1.1.判断查询是否合格
         if (params.getPageNo() < 1) {

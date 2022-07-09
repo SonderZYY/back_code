@@ -1,0 +1,43 @@
+#微服务配置
+spring:
+  application:
+    name: content-service
+  jackson:
+    date-format: yyyy-MM-dd HH:mm:ss
+    time-zone: GMT+8
+  cloud:
+    nacos:
+      server-addr: 192.168.94.129:8848
+      discovery:
+        namespace: 72990e80-c137-4cdc-9b6a-33e3ead0957d
+        group: ${dev.group}
+      config:
+        namespace: 72990e80-c137-4cdc-9b6a-33e3ead0957d
+        group: ${dev.group}
+        file-extension: properties
+        shared-configs: #加载公共配置信息
+          - dataId: mp-config.properties
+            group: ${dev.group}
+          - dataId: spring-http-config.properties
+            group: ${dev.group}
+          - dataId: spring-druid-config.properties
+            group: ${dev.group}
+
+  profiles:
+    active: dev
+dev:
+  group: xc-group
+
+
+# 日志文件配置路径
+logging:
+  config: classpath:log4j2-dev.xml
+
+
+# swagger 文档配置
+swagger:
+  title: "学成在线内容管理系统"
+  description: "内容系统管理系统对课程相关信息进行业务管理数据"
+  base-package: com.xuecheng
+  enabled: true
+  version: 1.0.0
