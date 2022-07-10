@@ -1,10 +1,11 @@
-package com.xuecheng.api.content.dto;
+package com.xuecheng.api.content.model.dto;
 
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
 import java.io.Serializable;
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 /**
@@ -17,8 +18,6 @@ import java.time.LocalDateTime;
 @Data
 @ApiModel(value="CourseBaseDTO", description="课程基本信息")
 public class CourseBaseDTO implements Serializable {
-
-    private static final long serialVersionUID = 1L;
 
     @ApiModelProperty(value = "主键")
     private Long courseBaseId;
@@ -82,6 +81,12 @@ public class CourseBaseDTO implements Serializable {
 
     @ApiModelProperty(value = "课程发布标识")
     private Long coursePubId;
+
+
+    @ApiModelProperty(value = "收费规则，对应数据字典", required = true)
+    private String charge;
+    @ApiModelProperty(value = "价格")
+    private BigDecimal price;
 
 
 }

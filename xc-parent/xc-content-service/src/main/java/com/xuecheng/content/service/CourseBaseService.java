@@ -1,7 +1,8 @@
 package com.xuecheng.content.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
-import com.xuecheng.api.content.qo.QueryCourseBaseModel;
+import com.xuecheng.api.content.model.dto.CourseBaseDTO;
+import com.xuecheng.api.content.model.qo.QueryCourseBaseModel;
 import com.xuecheng.common.domain.page.PageRequestParams;
 import com.xuecheng.common.domain.page.PageVO;
 import com.xuecheng.content.entity.CourseBase;
@@ -24,5 +25,33 @@ public interface CourseBaseService extends IService<CourseBase> {
 
      * @return PageVO 分页查询条件结果封装对象
      */
-    PageVO queryCourseBaseList(PageRequestParams params, QueryCourseBaseModel model,Long companyId);
+    PageVO queryCourseBaseList(PageRequestParams params, QueryCourseBaseModel model, Long companyId);
+
+    /**
+     * 课程基础信息的添加
+     * @param dto CourseBaseDTO 前端传入的vo转换为dto
+     * @return CourseBaseDTO
+     */
+    CourseBaseDTO creatCourseBase(CourseBaseDTO dto);
+
+    /**
+     * 根据id获取课程基本信息
+     * @param courseBaseId Long 课程id值
+     * @param companyId Long 公司标识id
+     * @return CourseBaseDTO
+     */
+    CourseBaseDTO getCourseBaseById(Long courseBaseId, Long companyId);
+
+    /**
+     * 根据id修改课程基础信息
+     * @param dto CourseBaseDTO 封装后包含机构id的数据
+     * @return CourseBaseDTO
+     */
+    CourseBaseDTO modifyCourseBaseById(CourseBaseDTO dto);
+
+    /**
+     * 根据id删除课程基础信息
+     * @param courseBaseId 课程Id
+     */
+    void removeCourseById(Long courseBaseId,Long companyId);
 }

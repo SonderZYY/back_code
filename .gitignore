@@ -1,7 +1,3 @@
-# Project exclude paths
-/test-swagger/target/
-/xc-parent/xc-common/target/
-/xc-parent/xc-mp-generator/target/
 # Compiled class file
 *.class
 

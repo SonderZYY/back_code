@@ -1,0 +1,40 @@
+#微服务启动参数
+spring:
+  application:
+    name: system-service
+  cloud:
+    nacos:
+      discovery:      #配置注册中心
+        server-addr: 192.168.94.129:8848
+        namespace: 72990e80-c137-4cdc-9b6a-33e3ead0957d
+        group: ${group.name}
+      config:         #配置中心
+        server-addr: 192.168.94.129:8848
+        namespace: 72990e80-c137-4cdc-9b6a-33e3ead0957d
+        group: ${group.name}
+        file-extension: properties
+        shared-configs:
+          - dataId: mp-config.properties
+            group: ${group.name}
+          - dataId: spring-http-config.properties
+            group: ${group.name}
+          - dataId: spring-druid-config.properties
+            group: ${group.name}
+  profiles:           # 激活配置环境
+    active: dev
+
+# 组名称
+group:
+  name: xc-group
+
+# 日志文件配置路径
+logging:
+  config: classpath:log4j2-dev.xml
+
+# swagger 文档配置
+swagger:
+  title: "学成在线系统管理系统"
+  description: "系统管理对整个系统数据进行业务管理"
+  base-package: com.xuecheng.system
+  enabled: true
+  version: 1.0.0
