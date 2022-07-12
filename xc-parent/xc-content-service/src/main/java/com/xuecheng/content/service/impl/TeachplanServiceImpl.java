@@ -13,6 +13,7 @@ import com.xuecheng.common.util.StringUtil;
 import com.xuecheng.content.common.constant.ContentErrorCode;
 import com.xuecheng.content.convert.TeachplanConvert;
 import com.xuecheng.content.entity.Teachplan;
+import com.xuecheng.content.entity.TeachplanMedia;
 import com.xuecheng.content.entity.ex.TeachplanNode;
 import com.xuecheng.content.mapper.TeachplanMapper;
 import com.xuecheng.content.service.CourseBaseService;
@@ -45,7 +46,7 @@ public class TeachplanServiceImpl extends ServiceImpl<TeachplanMapper, Teachplan
     private CourseBaseService courseBaseService;
 
     @Autowired
-    private TeachplanMediaService teachplanMediaService;
+    private TeachplanMediaService mediaService;
 
     /**
      * 根据课程Id查询课程计划树形结构(树形结构为三级目录)
@@ -252,6 +253,53 @@ public class TeachplanServiceImpl extends ServiceImpl<TeachplanMapper, Teachplan
         return resultDTO;
     }
 
+    /**
+     *根据课程id删除课程计划信息
+     * 业务分析：
+     *  判断关键数据信息：
+     *      课程id
+     *      机构id
+     * 判断业务数据
+     *      判断课程基本信息是否存在
+     */
+    public void removeTeachPlan(Long teachPlanId, Long companyId) {
+        //1.判断关键数据的合法性
+        if (ObjectUtils.isEmpty(teachPlanId)||
+                ObjectUtils.isEmpty(companyId)
+        ) {
+            ExceptionCast.cast(CommonErrorCode.E_100101);
+        }
+
+        Teachplan teachplan = getById(teachPlanId);
+        if (ObjectUtils.isEmpty(teachplan)) ExceptionCast.cast(ContentErrorCode.E_120402);
+
+
+
+        //1.2 判断课程基本信息是否存在
+        CourseBaseDTO courseBase = getCourseAndVerify(companyId, teachplan.getCourseId());
+
+
+        // 2. 根据课程计划等级进行业务判断
+        if (teachplan.getGrade() == TeachPlanEnum.SECEND_LEVEL) {
+            // 判断二级课程计划是否有子级课程计划信息
+            // select count(*) from teachplan where parentid = ?
+            LambdaQueryWrapper<Teachplan> queryWrapper = new LambdaQueryWrapper<>();
+            queryWrapper.eq(Teachplan::getParentid, teachPlanId);
+            int count = count(queryWrapper);
+            if (count > 0)
+                ExceptionCast.cast(ContentErrorCode.E_120409);
+        } else {
+            // 判断三级课程计划是否关联课程媒资信息
+            LambdaQueryWrapper<TeachplanMedia>
+                    mediaLambdaQueryWrapper = new LambdaQueryWrapper<>();
+            mediaLambdaQueryWrapper.eq(TeachplanMedia::getTeachplanId,teachPlanId);
+            int mediaCount = mediaService.count(mediaLambdaQueryWrapper);
+            if (mediaCount > 0) ExceptionCast.cast(ContentErrorCode.E_120413);
+        }
+        // 4.根据Id删除课程计划
+        removeById(teachPlanId);
+    }
+
     /*判断关键数据 : 课程id 课程计划名称 机构id*/
     private CourseBaseDTO verifyTeachplanMsg(TeachplanDTO dto, Long companyId) {
         if (ObjectUtils.isEmpty(companyId) ||
@@ -337,4 +385,5 @@ public class TeachplanServiceImpl extends ServiceImpl<TeachplanMapper, Teachplan
             return parentNode;
         }
     }
+
 }

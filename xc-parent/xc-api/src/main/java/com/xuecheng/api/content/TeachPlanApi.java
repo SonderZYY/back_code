@@ -15,4 +15,10 @@ public interface TeachPlanApi {
 
     @ApiOperation(value = "课程计划的添加和修改")
     TeachplanDTO creatOrModifyTeachplan(TeachplanVO vo);
+
+    @ApiOperation(value = "根据课程id删除课程计划信息")
+    @ApiImplicitParam(name = "teachPlanId" ,
+            value = "课程计划Id值",required = true,
+            dataType = "Long", paramType = "path", example = "1")
+    void removeTeachPlan(Long teachPlanId);
 }

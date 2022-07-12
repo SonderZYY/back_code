@@ -29,4 +29,11 @@ public interface TeachplanService extends IService<Teachplan> {
      * @return TeachplanDTO
      */
     TeachplanDTO creatOrModifyTeachplan(TeachplanDTO dto, Long companyId);
+
+    /**
+     * 根据课程计划Id删除课程计划信息
+     * @param teachPlanId {@link Long} 课程计划Id
+     * @param companyId {@link Long} 公司Id
+     */
+    void removeTeachPlan(Long teachPlanId,Long companyId);
 }

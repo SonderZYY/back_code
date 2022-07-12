@@ -27,14 +27,20 @@ public class TeachplanController implements TeachPlanApi {
     @GetMapping("/teachplan/{courseId}/tree-nodes")
     public TeachplanDTO queryTreeNodesByCourseId(@PathVariable Long courseId) {
         Long companyId = SecurityUtil.getCompanyId();
-        return teachplanService.queryTreeNodesByCourseId(courseId,companyId);
+        return teachplanService.queryTreeNodesByCourseId(courseId, companyId);
 
     }
 
-    @PostMapping("/teachpan")
+    @PostMapping("/teachplan")
     public TeachplanDTO creatOrModifyTeachplan(@RequestBody TeachplanVO vo) {
         Long companyId = SecurityUtil.getCompanyId();
         TeachplanDTO dto = TeachplanConvert.INSTANCE.vo2dto(vo);
-        return teachplanService.creatOrModifyTeachplan(dto,companyId);
+        return teachplanService.creatOrModifyTeachplan(dto, companyId);
+    }
+
+    @DeleteMapping("/teachplan/{teachPlanId}")
+    public void removeTeachPlan(@PathVariable Long teachPlanId) {
+        Long companyId = SecurityUtil.getCompanyId();
+        teachplanService.removeTeachPlan(teachPlanId, companyId);
     }
 }
