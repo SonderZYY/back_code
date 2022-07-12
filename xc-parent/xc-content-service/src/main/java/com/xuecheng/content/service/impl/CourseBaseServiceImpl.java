@@ -11,7 +11,9 @@ import com.xuecheng.common.domain.page.PageVO;
 import com.xuecheng.common.enums.common.CommonEnum;
 import com.xuecheng.common.enums.content.CourseAuditEnum;
 import com.xuecheng.common.enums.content.CourseChargeEnum;
+import com.xuecheng.common.exception.ExceptionCast;
 import com.xuecheng.common.util.StringUtil;
+import com.xuecheng.content.common.constant.ContentErrorCode;
 import com.xuecheng.content.convert.CourseBaseConvert;
 import com.xuecheng.content.entity.CourseBase;
 import com.xuecheng.content.entity.CourseMarket;
@@ -245,7 +247,7 @@ public class CourseBaseServiceImpl extends ServiceImpl<CourseBaseMapper, CourseB
         updateWrapper.eq(CourseBase::getId, dto.getCourseBaseId());
         boolean result = this.update(updateWrapper);
         if (!result) {
-            throw new RuntimeException("修改课程基本信息失败");
+            ExceptionCast.cast(ContentErrorCode.E_120001);
         }
         //后修改课程营销信息
         LambdaUpdateWrapper<CourseMarket> marketWrapper = new LambdaUpdateWrapper<>();
@@ -260,7 +262,7 @@ public class CourseBaseServiceImpl extends ServiceImpl<CourseBaseMapper, CourseB
         marketWrapper.eq(CourseMarket::getCourseId, dto.getCourseBaseId());
         boolean marketResult = courseMarketService.update(marketWrapper);
         if (!marketResult) {
-            throw new RuntimeException("修改课程营销数据失败");
+            ExceptionCast.cast(ContentErrorCode.E_120107);
         }
         //查询最新的数据
         CourseBase courseBase = this.getById(dto.getCourseBaseId());
@@ -285,7 +287,7 @@ public class CourseBaseServiceImpl extends ServiceImpl<CourseBaseMapper, CourseB
     public void removeCourseById(Long courseBaseId, Long companyId) {
         //2.数据检验：课程id,机构id
         if (ObjectUtils.isEmpty(courseBaseId) || ObjectUtils.isEmpty(companyId)) {
-            throw new RuntimeException("传入参数不符合要求");
+            ExceptionCast.cast(ContentErrorCode.E_120009);
         }
         //3.业务数据检验
         //机构id,课程状态,判断课程是否已经删除
@@ -299,7 +301,7 @@ public class CourseBaseServiceImpl extends ServiceImpl<CourseBaseMapper, CourseB
         //删除课程营销信息
         boolean deleteResult = update(wrapper);
         if (!deleteResult) {
-            throw new RuntimeException("删除课程信息失败");
+            ExceptionCast.cast(ContentErrorCode.E_120012);
         }
 
     }
@@ -314,7 +316,7 @@ public class CourseBaseServiceImpl extends ServiceImpl<CourseBaseMapper, CourseB
         if (CourseAuditEnum.AUDIT_COMMIT_STATUS.getCode().equals(auditStatus)
                 || CourseAuditEnum.AUDIT_PASTED_STATUS.getCode().equals(auditStatus)
                 || CourseAuditEnum.AUDIT_PUBLISHED_STATUS.getCode().equals(auditStatus)) {
-            throw new RuntimeException("课程审核状态不符合条件");
+            ExceptionCast.cast(ContentErrorCode.E_120015);
         }
     }
 
@@ -326,7 +328,7 @@ public class CourseBaseServiceImpl extends ServiceImpl<CourseBaseMapper, CourseB
         wrapper.eq(CourseMarket::getId, courseBaseId);
         CourseMarket courseMarket = courseMarketService.getOne(wrapper);
         if (ObjectUtils.isEmpty(courseMarket)) {
-            throw new RuntimeException("课程营销数据不存在");
+            ExceptionCast.cast(ContentErrorCode.E_120109);
         }
         return courseMarket;
     }
@@ -345,12 +347,12 @@ public class CourseBaseServiceImpl extends ServiceImpl<CourseBaseMapper, CourseB
         wrapper.eq(CourseBase::getCompanyId, companyId);
         CourseBase courseBase = this.getOne(wrapper);
         if (ObjectUtils.isEmpty(courseBase)) {
-            throw new RuntimeException("课程不存在");
+            ExceptionCast.cast(ContentErrorCode.E_120013);
         }
         //3.判断课程信息是否未删除
         Integer status = courseBase.getStatus();
         if (!(CommonEnum.USING_FLAG.getCodeInt().equals(status))) {
-            throw new RuntimeException("查询的课程已删除");
+            ExceptionCast.cast(ContentErrorCode.E_120021);
         }
         return courseBase;
     }
@@ -361,33 +363,33 @@ public class CourseBaseServiceImpl extends ServiceImpl<CourseBaseMapper, CourseB
     private void judgeCourseBaseData(CourseBaseDTO dto) {
         //判断公司id是否为空
         if (ObjectUtils.isEmpty(dto.getCompanyId())) {
-            throw new RuntimeException("公司id不能为空");
+            ExceptionCast.cast(ContentErrorCode.E_120013);
         }
         //判断课程名是否为空
         if (StringUtil.isBlank(dto.getName())) {
-            throw new RuntimeException("课程名称不能为空");
+            ExceptionCast.cast(ContentErrorCode.E_120004);
         }
         //判断课程大分类是否为空
         if (StringUtil.isBlank(dto.getMt())) {
-            throw new RuntimeException("课程大分类不能为空");
+            ExceptionCast.cast(ContentErrorCode.E_120002);
         }
         //判断课程小分类是否为空
         if (StringUtil.isBlank(dto.getSt())) {
-            throw new RuntimeException("课程小分类不能为空");
+            ExceptionCast.cast(ContentErrorCode.E_120003);
         }
         //判断适用人群是否为空
         if (StringUtil.isBlank(dto.getUsers())) {
-            throw new RuntimeException("适用人群不能为空");
+            ExceptionCast.cast(ContentErrorCode.E_120019);
         }
         //判断课程收费是否为空
         if (StringUtil.isBlank(dto.getCharge())) {
-            throw new RuntimeException("课程收费不能为空");
+            ExceptionCast.cast(ContentErrorCode.E_120020);
         }
         //判断收费课程的价格是否为空
         String charge = dto.getCharge();
         if (CourseChargeEnum.CHARGE_YES.getCode().equals(charge)) {
             if (ObjectUtils.isEmpty(dto.getPrice())) {
-                throw new RuntimeException("收费课程的价格不能为空");
+                ExceptionCast.cast(ContentErrorCode.E_120024);
             }
         } else {
             dto.setPrice(new BigDecimal(0));

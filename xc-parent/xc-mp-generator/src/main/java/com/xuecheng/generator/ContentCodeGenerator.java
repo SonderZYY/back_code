@@ -23,8 +23,8 @@ public class ContentCodeGenerator {
 	private static final String[] TABLE_NAMES = new String[]{
 			"course_base",
 			"course_market",
-			// "teachplan",
-			// "teachplan_media",
+			"teachplan",
+			"teachplan_media",
 			// "course_pub",
 	};
 
