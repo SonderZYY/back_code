@@ -5,13 +5,19 @@ import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.xuecheng.api.content.model.dto.CourseBaseDTO;
 import com.xuecheng.api.content.model.dto.TeachplanDTO;
+import com.xuecheng.api.content.model.dto.TeachplanMediaDTO;
+import com.xuecheng.api.media.model.dto.MediaDTO;
 import com.xuecheng.common.domain.code.CommonErrorCode;
+import com.xuecheng.common.domain.response.RestResponse;
+import com.xuecheng.common.enums.common.AuditEnum;
 import com.xuecheng.common.enums.content.CourseAuditEnum;
+import com.xuecheng.common.enums.content.CourseModeEnum;
 import com.xuecheng.common.enums.content.TeachPlanEnum;
 import com.xuecheng.common.exception.ExceptionCast;
 import com.xuecheng.common.util.StringUtil;
 import com.xuecheng.content.common.constant.ContentErrorCode;
 import com.xuecheng.content.convert.TeachplanConvert;
+import com.xuecheng.content.convert.TeachplanMediaConvert;
 import com.xuecheng.content.entity.Teachplan;
 import com.xuecheng.content.entity.TeachplanMedia;
 import com.xuecheng.content.entity.ex.TeachplanNode;
@@ -19,6 +25,7 @@ import com.xuecheng.content.mapper.TeachplanMapper;
 import com.xuecheng.content.service.CourseBaseService;
 import com.xuecheng.content.service.TeachplanMediaService;
 import com.xuecheng.content.service.TeachplanService;
+import com.xuecheng.feign.media.MediaApiAgent;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -47,6 +54,9 @@ public class TeachplanServiceImpl extends ServiceImpl<TeachplanMapper, Teachplan
 
     @Autowired
     private TeachplanMediaService mediaService;
+
+    @Autowired
+    private MediaApiAgent mediaApiAgent;
 
     /**
      * 根据课程Id查询课程计划树形结构(树形结构为三级目录)
@@ -204,8 +214,8 @@ public class TeachplanServiceImpl extends ServiceImpl<TeachplanMapper, Teachplan
     private TeachplanDTO creatTeachplan(TeachplanDTO dto, Long companyId) {
         //1.判断关键数据
         //   companyId  pname（课程计划的名称） courseId
-        if (ObjectUtils.isEmpty(companyId)||
-                StringUtil.isBlank(dto.getPname())||
+        if (ObjectUtils.isEmpty(companyId) ||
+                StringUtil.isBlank(dto.getPname()) ||
                 ObjectUtils.isEmpty(dto.getCourseId())
         ) {
             ExceptionCast.cast(CommonErrorCode.E_100101);
@@ -220,8 +230,8 @@ public class TeachplanServiceImpl extends ServiceImpl<TeachplanMapper, Teachplan
         CourseBaseDTO courseBase = courseBaseService.getCourseBaseById(dto.getCourseId(), companyId);
 
         String auditStatus = courseBase.getAuditStatus();
-        if (CourseAuditEnum.AUDIT_PASTED_STATUS.getCode().equals(auditStatus)||
-                CourseAuditEnum.AUDIT_COMMIT_STATUS.getCode().equals(auditStatus)||
+        if (CourseAuditEnum.AUDIT_PASTED_STATUS.getCode().equals(auditStatus) ||
+                CourseAuditEnum.AUDIT_COMMIT_STATUS.getCode().equals(auditStatus) ||
                 CourseAuditEnum.AUDIT_PUBLISHED_STATUS.getCode().equals(auditStatus)
         ) {
             ExceptionCast.cast(ContentErrorCode.E_120015);
@@ -230,15 +240,15 @@ public class TeachplanServiceImpl extends ServiceImpl<TeachplanMapper, Teachplan
         //     添加课程计划的parentid = 父级.id
         //     添加课程计划的grade = 父级.grade+1
         //     添加课程计划的orderby = 父级的子集数据个数+1  ： select count(*) from  teachplan where parentid = ?
-        Teachplan parentNode = generateParentNode(dto,courseBase);
+        Teachplan parentNode = generateParentNode(dto, courseBase);
         dto.setParentid(parentNode.getId());
-        dto.setGrade(parentNode.getGrade()+1);
+        dto.setGrade(parentNode.getGrade() + 1);
 
         LambdaQueryWrapper<Teachplan> queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper.eq(Teachplan::getParentid,parentNode.getId());
+        queryWrapper.eq(Teachplan::getParentid, parentNode.getId());
 
         int count = this.count(queryWrapper);
-        dto.setOrderby(count+1);
+        dto.setOrderby(count + 1);
         // 4.保存课程计划信息
         Teachplan teachplan = TeachplanConvert.INSTANCE.dto2entity(dto);
 
@@ -254,17 +264,17 @@ public class TeachplanServiceImpl extends ServiceImpl<TeachplanMapper, Teachplan
     }
 
     /**
-     *根据课程id删除课程计划信息
+     * 根据课程id删除课程计划信息
      * 业务分析：
-     *  判断关键数据信息：
-     *      课程id
-     *      机构id
+     * 判断关键数据信息：
+     * 课程id
+     * 机构id
      * 判断业务数据
-     *      判断课程基本信息是否存在
+     * 判断课程基本信息是否存在
      */
     public void removeTeachPlan(Long teachPlanId, Long companyId) {
         //1.判断关键数据的合法性
-        if (ObjectUtils.isEmpty(teachPlanId)||
+        if (ObjectUtils.isEmpty(teachPlanId) ||
                 ObjectUtils.isEmpty(companyId)
         ) {
             ExceptionCast.cast(CommonErrorCode.E_100101);
@@ -272,7 +282,6 @@ public class TeachplanServiceImpl extends ServiceImpl<TeachplanMapper, Teachplan
 
         Teachplan teachplan = getById(teachPlanId);
         if (ObjectUtils.isEmpty(teachplan)) ExceptionCast.cast(ContentErrorCode.E_120402);
-
 
 
         //1.2 判断课程基本信息是否存在
@@ -292,12 +301,134 @@ public class TeachplanServiceImpl extends ServiceImpl<TeachplanMapper, Teachplan
             // 判断三级课程计划是否关联课程媒资信息
             LambdaQueryWrapper<TeachplanMedia>
                     mediaLambdaQueryWrapper = new LambdaQueryWrapper<>();
-            mediaLambdaQueryWrapper.eq(TeachplanMedia::getTeachplanId,teachPlanId);
+            mediaLambdaQueryWrapper.eq(TeachplanMedia::getTeachplanId, teachPlanId);
             int mediaCount = mediaService.count(mediaLambdaQueryWrapper);
             if (mediaCount > 0) ExceptionCast.cast(ContentErrorCode.E_120413);
         }
         // 4.根据Id删除课程计划
         removeById(teachPlanId);
+    }
+
+    /**
+     * 课程计划绑定媒资信息功能实现
+     * 业务分析
+     * 0.事务：开启
+     * 1.判断关键数据
+     * teachplanId mediaId companyId
+     * 2.判断业务数据
+     * 课程计划基础信息
+     * 判断课程计划是否存在
+     * 判断是否第三级目录
+     * 判断课程类型是否为录播（课程基础信息中获取进行判断）
+     * 课程基本信息
+     * 判断是否存在或是否是同一家机构
+     * 判断是否删除
+     * 判断审核状态：只有未提交、审核未通过可以绑定媒资
+     * 媒资信息
+     * 判断媒资信息是否存在
+     * 判断是否同一家机构
+     * 判断媒资审核状态
+     * 3.保存课程计划和媒资信息的数据
+     * 判断绑定的信息是否存在
+     * 存在：修改绑定媒资的信息：meidiaId mediafileName
+     * 不存在：添加课程计划媒资信息
+     * 4.修改课程计划的类型
+     * mediaType值
+     * 5.判断保存的结果并返回最新的数据内容
+     */
+    @Override
+    public TeachplanMediaDTO associateMedia(TeachplanMediaDTO dto, Long companyId) {
+        //1.判断关键数据
+        //teachplanId mediaId companyId
+        if (ObjectUtils.isEmpty(dto.getTeachplanId())
+                || ObjectUtils.isEmpty(dto.getMediaId())
+                || ObjectUtils.isEmpty(companyId)) {
+            ExceptionCast.cast(CommonErrorCode.E_100101);
+        }
+        //2.判断业务数据
+        //课程计划基础信息
+        //判断课程计划是否存在
+        //判断是否第三级目录
+        //判断课程类型是否为录播（课程基础信息中获取进行判断）
+        Teachplan teachplan = this.getById(dto.getTeachplanId());
+        if (ObjectUtils.isEmpty(teachplan)) {
+            ExceptionCast.cast(ContentErrorCode.E_120402);
+        }
+        if (!(TeachPlanEnum.THIRD_LEVEL.equals(teachplan.getGrade()))) {
+            ExceptionCast.cast(ContentErrorCode.E_120410);
+        }
+        //课程基本信息
+        //判断是否存在或是否是同一家机构
+        //判断是否删除
+        //判断审核状态：只有未提交、审核未通过可以绑定媒资
+        CourseBaseDTO courseBaseDTO = getCourseAndVerify(companyId, teachplan.getCourseId());
+        String teachMode = courseBaseDTO.getTeachmode();
+        if (!(CourseModeEnum.COURSE_MODE_RECORD_STATUS.getCode().equals(teachMode))) {
+            ExceptionCast.cast(ContentErrorCode.E_120418);
+        }
+        //媒资信息
+        //判断媒资信息是否存在
+        //判断是否同一家机构
+        //判断媒资审核状态
+        RestResponse<MediaDTO> response = mediaApiAgent.getMediaById4s(dto.getMediaId());
+        if (!(response.isSuccessful())) {
+            ExceptionCast.castWithCodeAndDesc(response.getCode(), response.getMsg());
+        }
+        MediaDTO media = response.getResult();
+        if (!(ObjectUtils.nullSafeEquals(media.getCompanyId(), companyId))) {
+            ExceptionCast.cast(CommonErrorCode.E_100108);
+        }
+        String auditStatus = media.getAuditStatus();
+        if (!(AuditEnum.AUDIT_PASTED_STATUS.getCode().equals(auditStatus))) {
+            ExceptionCast.cast(ContentErrorCode.E_120416);
+        }
+        //3.保存课程计划和媒资信息的数据
+        //判断绑定的信息是否存在
+        LambdaQueryWrapper<TeachplanMedia> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(TeachplanMedia::getTeachplanId, dto.getTeachplanId());
+        int count = mediaService.count(wrapper);
+        boolean teachPlanMediaResult = false;
+        if (count > 0) {
+            //存在：修改绑定媒资的信息：meidiaId mediafileName
+            LambdaUpdateWrapper<TeachplanMedia> updateWrapper = new LambdaUpdateWrapper<>();
+            updateWrapper.set(TeachplanMedia::getMediaId, media.getId());
+            updateWrapper.set(TeachplanMedia::getMediaFilename, media.getFilename());
+            updateWrapper.eq(TeachplanMedia::getTeachplanId, teachplan.getId());
+            teachPlanMediaResult = mediaService.update(updateWrapper);
+        } else {
+            //不存在：添加课程计划媒资信息
+            TeachplanMedia teachplanMedia = TeachplanMedia.builder()
+                    .mediaId(media.getId())
+                    .mediaFilename(media.getFilename())
+                    .teachplanId(teachplan.getId())
+                    .courseId(teachplan.getCourseId())
+                    .build();
+            teachPlanMediaResult = mediaService.save(teachplanMedia);
+        }
+        if (!teachPlanMediaResult) {
+            ExceptionCast.cast(ContentErrorCode.E_120411);
+        }
+        //4.修改课程计划的类型
+        //mediaType值
+        changeTeachplanMediaType(teachplan.getId(), media.getType());
+        //5.判断保存的结果并返回最新的数据内容
+        TeachplanMedia po = mediaService.getById(dto.getTeachplanId());
+        return TeachplanMediaConvert.INSTANCE.entity2dto(po);
+
+    }
+
+    /* 修改课程计划mediatype类型 */
+    private void changeTeachplanMediaType(Long teachplanId, String mediaType) {
+
+        LambdaUpdateWrapper<Teachplan> teachplanUpdateWrapper = new LambdaUpdateWrapper<>();
+        teachplanUpdateWrapper.set(Teachplan::getMediaType, mediaType);
+        teachplanUpdateWrapper.set(Teachplan::getChangeDate, LocalDateTime.now());
+        teachplanUpdateWrapper.eq(Teachplan::getId, teachplanId);
+
+        boolean teachplanResult = this.update(teachplanUpdateWrapper);
+        if (!teachplanResult) {
+            ExceptionCast.cast(ContentErrorCode.E_120421);
+        }
     }
 
     /*判断关键数据 : 课程id 课程计划名称 机构id*/
@@ -345,8 +476,8 @@ public class TeachplanServiceImpl extends ServiceImpl<TeachplanMapper, Teachplan
             //           如果不存在--在后端创建出数据内容（一级课程计划）
             //           如果存在--直接返回
             LambdaQueryWrapper<Teachplan> queryWrapper = new LambdaQueryWrapper<>();
-            queryWrapper.eq(Teachplan::getCourseId,dto.getCourseId());
-            queryWrapper.eq(Teachplan::getParentid,TeachPlanEnum.FIRST_PARENTID_FLAG);
+            queryWrapper.eq(Teachplan::getCourseId, dto.getCourseId());
+            queryWrapper.eq(Teachplan::getParentid, TeachPlanEnum.FIRST_PARENTID_FLAG);
 
             Teachplan rootNode = this.getOne(queryWrapper);
 

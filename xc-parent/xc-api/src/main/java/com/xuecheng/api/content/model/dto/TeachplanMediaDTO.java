@@ -6,21 +6,12 @@ import lombok.Data;
 
 import java.io.Serializable;
 
-/**
- * <p>
- * 
- * </p>
- *
- * @author itcast
- */
 @Data
 @ApiModel(value="TeachplanMediaDTO", description="")
 public class TeachplanMediaDTO implements Serializable {
 
-    private static final long serialVersionUID = 1L;
-
     @ApiModelProperty(value = "主键")
-    private Long id;
+    private Long teachplanMediaId;
 
     @ApiModelProperty(value = "媒资信息标识")
     private Long mediaId;
@@ -36,5 +27,9 @@ public class TeachplanMediaDTO implements Serializable {
 
     @ApiModelProperty(value = "媒资文件原始名称")
     private String mediaFilename;
+
+    //其他代码省略
+    @ApiModelProperty(value = "媒资信息")
+    private TeachplanMediaDTO teachplanMedia;   //添加课程计划媒资信息属性
 
 }

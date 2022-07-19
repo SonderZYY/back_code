@@ -19,15 +19,15 @@ public class MediaCodeGenerator {
 	private static final String SERVICE_NAME = "media";
 
 	private static final String DATA_SOURCE_USER_NAME  = "root";
-	private static final String DATA_SOURCE_PASSWORD  = "root";
+	private static final String DATA_SOURCE_PASSWORD  = "itcast145";
 	private static final String[] TABLE_NAMES = new String[]{
-			// "media",
-			"live_course",
+			"media",
+			//"live_course",
 	};
 
 	// TODO 默认生成entity，需要生成DTO修改此变量
 	// 一般情况下要先生成 DTO类 然后修改此参数再生成 PO 类。
-	private static final Boolean IS_DTO = false;
+	private static final Boolean IS_DTO = true;
 
 	public static void main(String[] args) {
 		// 代码生成器
@@ -54,7 +54,7 @@ public class MediaCodeGenerator {
 		// 数据库配置
 		DataSourceConfig dsc = new DataSourceConfig();
 		dsc.setDbType(DbType.MYSQL);
-		dsc.setUrl("jdbc:mysql://localhost:3306/xc_" + SERVICE_NAME
+		dsc.setUrl("jdbc:mysql://192.168.94.129:3306/xc_" + SERVICE_NAME
 				+ "?useUnicode=true&useSSL=false&characterEncoding=utf8");
 		dsc.setDriverName("com.mysql.jdbc.Driver");
 		dsc.setUsername(DATA_SOURCE_USER_NAME);

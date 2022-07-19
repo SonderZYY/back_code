@@ -6,6 +6,7 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.xuecheng.api.content.model.dto.CourseBaseDTO;
 import com.xuecheng.api.content.model.qo.QueryCourseBaseModel;
+import com.xuecheng.common.domain.code.CommonErrorCode;
 import com.xuecheng.common.domain.page.PageRequestParams;
 import com.xuecheng.common.domain.page.PageVO;
 import com.xuecheng.common.enums.common.CommonEnum;
@@ -14,6 +15,7 @@ import com.xuecheng.common.enums.content.CourseChargeEnum;
 import com.xuecheng.common.exception.ExceptionCast;
 import com.xuecheng.common.util.StringUtil;
 import com.xuecheng.content.common.constant.ContentErrorCode;
+import com.xuecheng.content.controller.CourseAuditController;
 import com.xuecheng.content.convert.CourseBaseConvert;
 import com.xuecheng.content.entity.CourseBase;
 import com.xuecheng.content.entity.CourseMarket;
@@ -79,8 +81,9 @@ public class CourseBaseServiceImpl extends ServiceImpl<CourseBaseMapper, CourseB
         wrapper.eq(StringUtil.isNotBlank(model.getAuditStatus()),
                 CourseBase::getAuditStatus,
                 model.getAuditStatus());
-
-        wrapper.eq(CourseBase::getCompanyId, companyId);
+        if (!(ObjectUtils.nullSafeEquals(companyId, CourseAuditController.OPERATION_FLAG))) {
+            wrapper.eq(CourseBase::getCompanyId, companyId);
+        }
         //4.查询数据
         Page<CourseBase> pageResult = this.page(page, wrapper);
         //4.1.获取总条数
@@ -284,6 +287,7 @@ public class CourseBaseServiceImpl extends ServiceImpl<CourseBaseMapper, CourseB
      * 4.删除课程基本信息
      * 删除课程营销信息
      */
+    @Transactional
     public void removeCourseById(Long courseBaseId, Long companyId) {
         //2.数据检验：课程id,机构id
         if (ObjectUtils.isEmpty(courseBaseId) || ObjectUtils.isEmpty(companyId)) {
@@ -304,6 +308,108 @@ public class CourseBaseServiceImpl extends ServiceImpl<CourseBaseMapper, CourseB
             ExceptionCast.cast(ContentErrorCode.E_120012);
         }
 
+    }
+
+    /**
+     * TODO：课程提交审核功能
+     * <p>
+     * 业务分析：
+     * 0.是否开启事务—开启
+     * 1.判断关键数据
+     * 机构id，课程id
+     * 2.判断业务数据
+     * 是否同一家机构
+     * 课程状态是否为未提交，审核未通过
+     * 课程是否存在
+     * 课程是否删除
+     * 3.修改审核状态
+     */
+    @Transactional
+    public void commitCourseBase(Long courseBaseId, Long companyId) {
+        //1.判断关键数据
+        //  机构id，课程id
+        if (ObjectUtils.isEmpty(courseBaseId) || ObjectUtils.isEmpty(companyId)) {
+            ExceptionCast.cast(CommonErrorCode.E_100101);
+        }
+        //2.判断业务数据
+        // 是否同一家机构
+        // 课程状态是否为未提交，审核未通过
+        // 课程是否存在
+        // 课程是否删除
+        getCourseBaseByLogic(courseBaseId, companyId);
+        //3.修改审核状态
+        LambdaUpdateWrapper<CourseBase> wrapper = new LambdaUpdateWrapper<>();
+        wrapper.set(CourseBase::getAuditStatus, CourseAuditEnum.AUDIT_COMMIT_STATUS.getCode());
+        wrapper.set(CourseBase::getChangeDate, LocalDateTime.now());
+        wrapper.eq(CourseBase::getId, courseBaseId);
+        boolean updateResult = this.update(wrapper);
+        if (!updateResult) {
+            ExceptionCast.cast(ContentErrorCode.E_120017);
+        }
+    }
+
+    /**
+     * TODO:课程审核功能实现
+     * <p>
+     * 业务分析
+     * 0.判断事务—开启
+     * 1.判断关键数据
+     * auditMind—
+     * auditStatus—课程状态
+     * courseId—课程id
+     * 2.判断业务数据
+     * 课程基础信息
+     * 判断是否存在
+     * 判断是否删除
+     * 判断审核状态—已提交
+     * 审核状态修改
+     * 运营平台只能给课程审核状态赋值：审核通过、不通过
+     * 3.修改课程审核信息
+     * auditMind、auditStatus、auditNum
+     */
+    @Transactional
+    public void approve(CourseBaseDTO dto) {
+        //1.判断关键数据
+        // auditMind—
+        // auditStatus—课程状态
+        // courseId—课程id
+        if (StringUtil.isBlank(dto.getAuditMind())
+                || StringUtil.isBlank(dto.getAuditStatus())
+                || ObjectUtils.isEmpty(dto.getCourseBaseId())) {
+            ExceptionCast.cast(CommonErrorCode.E_100101);
+        }
+        //2.判断业务数据
+        // 课程基础信息
+        //     判断是否存在
+        //     判断是否删除
+        //     判断审核状态—已提交
+        LambdaQueryWrapper<CourseBase> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(CourseBase::getId, dto.getCourseBaseId());
+        wrapper.eq(CourseBase::getStatus, CommonEnum.USING_FLAG.getCode());
+        wrapper.eq(CourseBase::getAuditStatus, CourseAuditEnum.AUDIT_COMMIT_STATUS);
+        int count = this.count(wrapper);
+        if (count < 1) {
+            ExceptionCast.cast(ContentErrorCode.E_120023);
+        }
+        // 审核状态修改
+        //     运营平台只能给课程审核状态赋值：审核通过、不通过
+        String auditStatus = dto.getAuditStatus();
+        if (CourseAuditEnum.AUDIT_PUBLISHED_STATUS.getCode().equals(auditStatus)
+                || CourseAuditEnum.AUDIT_COMMIT_STATUS.getCode().equals(auditStatus)
+                || CourseAuditEnum.AUDIT_UNPAST_STATUS.getCode().equals(auditStatus)) {
+            ExceptionCast.cast(ContentErrorCode.E_120016);
+        }
+        //3.修改课程审核信息
+        // auditMind、auditStatus、auditNum
+        LambdaUpdateWrapper<CourseBase> updateWrapper = new LambdaUpdateWrapper<>();
+        updateWrapper.set(CourseBase::getAuditStatus, dto.getAuditStatus());
+        updateWrapper.set(CourseBase::getAuditMind, dto.getAuditMind());
+        updateWrapper.setSql("audit_nums = audit_nums+1");
+        updateWrapper.eq(CourseBase::getId, dto.getCourseBaseId());
+        boolean updateResult = this.update(updateWrapper);
+        if (!updateResult) {
+            ExceptionCast.cast(ContentErrorCode.E_120017);
+        }
     }
 
     /**

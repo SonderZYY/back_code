@@ -3,6 +3,7 @@ package com.xuecheng.content.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.xuecheng.api.content.model.dto.TeachplanDTO;
+import com.xuecheng.api.content.model.dto.TeachplanMediaDTO;
 import com.xuecheng.content.entity.Teachplan;
 
 /**
@@ -16,7 +17,8 @@ import com.xuecheng.content.entity.Teachplan;
 public interface TeachplanService extends IService<Teachplan> {
     /**
      * 根据课程Id查询课程计划树形结构(树形结构为三级目录)
-     * @param courseId 课程id
+     *
+     * @param courseId  课程id
      * @param companyId 机构标识id
      * @return TeachplanDTO
      */
@@ -24,7 +26,8 @@ public interface TeachplanService extends IService<Teachplan> {
 
     /**
      * 课程计划的添加和修改
-     * @param dto 前端传入数据—封装为DTO类型
+     *
+     * @param dto       前端传入数据—封装为DTO类型
      * @param companyId 机构标识id
      * @return TeachplanDTO
      */
@@ -32,8 +35,17 @@ public interface TeachplanService extends IService<Teachplan> {
 
     /**
      * 根据课程计划Id删除课程计划信息
+     *
      * @param teachPlanId {@link Long} 课程计划Id
-     * @param companyId {@link Long} 公司Id
+     * @param companyId   {@link Long} 公司Id
      */
-    void removeTeachPlan(Long teachPlanId,Long companyId);
+    void removeTeachPlan(Long teachPlanId, Long companyId);
+
+    /**
+     * 课程计划绑定媒资信息
+     * @param dto 课程基础信息封装类
+     * @param companyId 机构id
+     * @return TeachplanDTO
+     */
+    TeachplanMediaDTO associateMedia(TeachplanMediaDTO dto, Long companyId);
 }

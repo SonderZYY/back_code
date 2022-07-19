@@ -54,4 +54,17 @@ public interface CourseBaseService extends IService<CourseBase> {
      * @param courseBaseId 课程Id
      */
     void removeCourseById(Long courseBaseId,Long companyId);
+
+    /**
+     * 根据课程id提交课程审核方法
+     * @param courseBaseId 课程id
+     * @param companyId 机构id
+     */
+    void commitCourseBase(Long courseBaseId, Long companyId);
+
+    /**
+     * 课程审核业务实现
+     * @param dto CourseBaseDTO
+     */
+    void approve(CourseBaseDTO dto);
 }

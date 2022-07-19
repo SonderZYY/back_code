@@ -1,6 +1,8 @@
 package com.xuecheng.content.convert;
 
+
 import com.xuecheng.api.content.model.dto.CourseBaseDTO;
+import com.xuecheng.api.content.model.vo.CourseAuditVO;
 import com.xuecheng.api.content.model.vo.CourseBaseVO;
 import com.xuecheng.content.entity.CourseBase;
 import org.mapstruct.Mapper;
@@ -22,6 +24,8 @@ public interface CourseBaseConvert {
 
     @Mapping(source = "courseBaseId", target = "id")
     CourseBase dto2entity(CourseBaseDTO courseBaseDTO);
+
+    CourseBaseDTO audit2dto(CourseAuditVO vo);
 
     /**
      * 集合对象的转换：

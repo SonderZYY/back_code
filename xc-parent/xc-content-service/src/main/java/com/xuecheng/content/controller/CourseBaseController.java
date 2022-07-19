@@ -75,4 +75,10 @@ public class CourseBaseController implements CourseBaseApi {
         Long companyId = SecurityUtil.getCompanyId();
         courseBaseService.removeCourseById(courseBaseId, companyId);
     }
+
+    @GetMapping("/course/commit/{courseBaseId}")
+    public void commitCourseBase(@PathVariable Long courseBaseId) {
+        Long companyId = SecurityUtil.getCompanyId();
+        courseBaseService.commitCourseBase(courseBaseId,companyId);
+    }
 }

@@ -1,8 +1,9 @@
 package com.xuecheng.content.controller;
 
-import com.xuecheng.api.content.TeachPlanApi;
-import com.xuecheng.api.content.model.dto.TeachplanDTO;
+import com.xuecheng.api.content.TeachPlanApi;import com.xuecheng.api.content.model.dto.TeachplanDTO;
+import com.xuecheng.api.content.model.dto.TeachplanMediaDTO;
 import com.xuecheng.api.content.model.vo.TeachplanVO;
+import com.xuecheng.api.media.model.vo.BindTeachplanMediaVO;
 import com.xuecheng.common.util.SecurityUtil;
 import com.xuecheng.content.convert.TeachplanConvert;
 import com.xuecheng.content.service.TeachplanService;
@@ -42,5 +43,14 @@ public class TeachplanController implements TeachPlanApi {
     public void removeTeachPlan(@PathVariable Long teachPlanId) {
         Long companyId = SecurityUtil.getCompanyId();
         teachplanService.removeTeachPlan(teachPlanId, companyId);
+    }
+
+    @PostMapping("teachplan/media/association")
+    public TeachplanMediaDTO associateMedia(BindTeachplanMediaVO vo) {
+        Long companyId = SecurityUtil.getCompanyId();
+        TeachplanMediaDTO teachplanMediaDTO = new TeachplanMediaDTO();
+        teachplanMediaDTO.setTeachplanId(vo.getTeachplanId());
+        teachplanMediaDTO.setMediaId(vo.getMediaId());
+        return teachplanService.associateMedia(teachplanMediaDTO, companyId);
     }
 }

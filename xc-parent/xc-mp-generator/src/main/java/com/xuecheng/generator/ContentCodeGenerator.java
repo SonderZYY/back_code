@@ -21,11 +21,12 @@ public class ContentCodeGenerator {
 	private static final String DATA_SOURCE_USER_NAME  = "root";
 	private static final String DATA_SOURCE_PASSWORD  = "itcast145";
 	private static final String[] TABLE_NAMES = new String[]{
-			"course_base",
-			"course_market",
-			"teachplan",
-			"teachplan_media",
+//			"course_base",
+//			"course_market",
+//			"teachplan",
+//			"teachplan_media",
 			// "course_pub",
+			"course_teacher"
 	};
 
 	// TODO 默认生成entity，需要生成DTO修改此变量
