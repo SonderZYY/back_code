@@ -26,6 +26,10 @@ spring:
             group: ${dev.group}
           - dataId: feign-config.properties
             group: ${dev.group}
+          - dataId: freemaker-config.properties
+            group: ${dev.group}
+          - dataId: rabbitmq-config.properties
+            group: ${dev.group}
     sentinel:
       transport:
         dashboard: 192.168.94.129:8858 #sentinel控制台地址

@@ -32,6 +32,12 @@ public interface CourseBaseApi {
     void removeCourseById(Long courseId);
 
     @ApiOperation(value = "课程提交审核功能")
-    @ApiImplicitParam(name = "courseBaseId",value = "课程id",required = true,dataType = "Long", paramType = "path")
+    @ApiImplicitParam(name = "courseBaseId", value = "课程id", required = true, dataType = "Long", paramType = "path")
     void commitCourseBase(Long courseBaseId);
+
+    @ApiOperation(value = "课程预览")
+    Object previewCourse(Long courseId, Long companyId);
+
+    @ApiOperation(value = "课程发布")
+    void publish(Long courseBaseId);
 }

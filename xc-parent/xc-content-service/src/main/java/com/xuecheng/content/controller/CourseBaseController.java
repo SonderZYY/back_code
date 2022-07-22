@@ -9,9 +9,13 @@ import com.xuecheng.common.domain.page.PageVO;
 import com.xuecheng.common.util.SecurityUtil;
 import com.xuecheng.content.convert.CourseBaseConvert;
 import com.xuecheng.content.service.CourseBaseService;
+import com.xuecheng.content.service.CoursePubService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.ModelAndView;
+
+import java.util.Map;
 
 /**
  * <p>
@@ -26,6 +30,9 @@ public class CourseBaseController implements CourseBaseApi {
 
     @Autowired
     private CourseBaseService courseBaseService;
+
+    @Autowired
+    private CoursePubService coursePubService;
 
     /**
      * SpringMvc 对于参数方式接收：
@@ -78,7 +85,23 @@ public class CourseBaseController implements CourseBaseApi {
 
     @GetMapping("/course/commit/{courseBaseId}")
     public void commitCourseBase(@PathVariable Long courseBaseId) {
+        //获取唯一标识机构id
         Long companyId = SecurityUtil.getCompanyId();
-        courseBaseService.commitCourseBase(courseBaseId,companyId);
+        courseBaseService.commitCourseBase(courseBaseId, companyId);
+    }
+
+    @GetMapping("course/preview/{courseId}/{companyId}")
+    public Object previewCourse(@PathVariable Long courseId, @PathVariable Long companyId) {
+        //获取数据模型dataMap
+        Map<String, Object> dataMap = coursePubService.previewCourse(courseId, companyId);
+        return new ModelAndView("learing_article", dataMap);
+
+    }
+
+    @PostMapping("course_pub/publish/{courseId}")
+    public void publish(@PathVariable("courseId") Long courseBaseId) {
+        //获取唯一标识机构id
+        Long companyId = SecurityUtil.getCompanyId();
+        coursePubService.publish(courseBaseId, companyId, false);
     }
 }

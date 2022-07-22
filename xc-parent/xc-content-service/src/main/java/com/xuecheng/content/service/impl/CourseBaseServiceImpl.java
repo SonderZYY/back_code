@@ -416,7 +416,7 @@ public class CourseBaseServiceImpl extends ServiceImpl<CourseBaseMapper, CourseB
      * 课程id、机构id、
      * 课程是否删除、课程审核状态 的数据是否符合条件
      */
-    private void getCourseBaseByLogic(Long courseBaseId, Long companyId) {
+    public void getCourseBaseByLogic(Long courseBaseId, Long companyId) {
         CourseBase courseBase = getCourseBaseByBaseId(courseBaseId, companyId);
         String auditStatus = courseBase.getAuditStatus();
         if (CourseAuditEnum.AUDIT_COMMIT_STATUS.getCode().equals(auditStatus)
@@ -429,7 +429,7 @@ public class CourseBaseServiceImpl extends ServiceImpl<CourseBaseMapper, CourseB
     /**
      * TODO:查询课程营销表的数据
      **/
-    private CourseMarket getCourseMarketByCourseId(Long courseBaseId) {
+    public CourseMarket getCourseMarketByCourseId(Long courseBaseId) {
         LambdaQueryWrapper<CourseMarket> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(CourseMarket::getId, courseBaseId);
         CourseMarket courseMarket = courseMarketService.getOne(wrapper);
@@ -445,7 +445,7 @@ public class CourseBaseServiceImpl extends ServiceImpl<CourseBaseMapper, CourseB
      * 2.判断查询的课程信息和传入的机构id是否相同
      * 3.判断课程信息是否删除
      */
-    private CourseBase getCourseBaseByBaseId(Long courseBaseId, Long companyId) {
+    public CourseBase getCourseBaseByBaseId(Long courseBaseId, Long companyId) {
         LambdaQueryWrapper<CourseBase> wrapper = new LambdaQueryWrapper<>();
         //1.判断课程信息是否存在
         wrapper.eq(CourseBase::getId, courseBaseId);

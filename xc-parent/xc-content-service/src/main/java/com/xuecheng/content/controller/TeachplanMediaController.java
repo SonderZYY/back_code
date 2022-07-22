@@ -15,7 +15,6 @@ import org.springframework.web.bind.annotation.RestController;
  */
 @Slf4j
 @RestController
-@RequestMapping("teachplanMediaDTO")
 public class TeachplanMediaController {
 
     @Autowired

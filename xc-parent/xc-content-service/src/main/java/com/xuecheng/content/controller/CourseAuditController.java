@@ -1,7 +1,7 @@
 package com.xuecheng.content.controller;
 
 import com.xuecheng.api.content.CourseAuditApi;
-import com.xuecheng.content.mapper.dto.CourseBaseDTO;
+import com.xuecheng.api.content.model.dto.CourseBaseDTO;
 import com.xuecheng.api.content.model.qo.QueryCourseBaseModel;
 import com.xuecheng.api.content.model.vo.CourseAuditVO;
 import com.xuecheng.common.domain.page.PageRequestParams;
@@ -28,7 +28,7 @@ public class CourseAuditController implements CourseAuditApi {
         return courseBaseService.queryCourseBaseList(params, model, OPERATION_FLAG);
     }
 
-    @PostMapping("/courseReview/approve")
+    @PostMapping("m/courseReview/approve")
     public void approveCourseBase(@RequestBody CourseAuditVO courseAuditVO) {
         CourseBaseDTO dto = CourseBaseConvert.INSTANCE.audit2dto(courseAuditVO);
         courseBaseService.approve(dto);

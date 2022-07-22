@@ -20,8 +20,8 @@ public class CourseTeacherDTO implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
-    @ApiModelProperty(value = "主键")
-    private Long id;
+    @ApiModelProperty(value = "主键,教师id")
+    private Long courseTeacherId;
 
     @ApiModelProperty(value = "课程标识")
     private Long courseId;

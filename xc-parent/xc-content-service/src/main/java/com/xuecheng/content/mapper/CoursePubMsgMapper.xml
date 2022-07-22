@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xuecheng.content.mapper.CoursePubMsgMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.xuecheng.content.entity.CoursePubMsg">
+        <id column="pub_id" property="pubId" />
+        <result column="pub_name" property="pubName" />
+        <result column="pub_status" property="pubStatus" />
+        <result column="course_id" property="courseId" />
+        <result column="company_id" property="companyId" />
+        <result column="create_date" property="createDate" />
+        <result column="change_date" property="changeDate" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        pub_id, pub_name, pub_status, course_id, company_id, create_date, change_date
+    </sql>
+
+</mapper>

@@ -22,4 +22,20 @@ public interface CourseTeacherService extends IService<CourseTeacher> {
      * @return List<CourseTeacherDTO>
      */
     List<CourseTeacherDTO> queryCourseTeacherList(Long companyId, Long courseBaseId);
+
+    /**
+     * 新增或修改教师信息
+     * @param dto CourseTeacherDTO 前端接收的教师信息
+     * @param companyId Long 机构id
+     * @return CourseTeacherDTO 最新的课程教师信息DTO类型
+     */
+    CourseTeacherDTO createOrModifyCourseTeach(CourseTeacherDTO dto, Long companyId);
+
+    /**
+     * 根据Id删除教师信息
+     * @param courseId Long 课程id
+     * @param courseTeacherId Long 教师id
+     * @param companyId Long 机构id
+     */
+    void removeCourseTeachById(Long courseId, Long courseTeacherId, Long companyId);
 }

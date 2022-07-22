@@ -6,6 +6,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.xuecheng.api.content.model.dto.TeachplanMediaDTO;
 import com.xuecheng.api.media.model.dto.MediaDTO;
 import com.xuecheng.api.media.model.qo.QueryMediaModel;
 import com.xuecheng.common.domain.code.CommonErrorCode;
@@ -16,6 +17,7 @@ import com.xuecheng.common.enums.common.AuditEnum;
 import com.xuecheng.common.enums.common.ResourceTypeEnum;
 import com.xuecheng.common.exception.ExceptionCast;
 import com.xuecheng.common.util.StringUtil;
+import com.xuecheng.media.agent.ContentApiAgent;
 import com.xuecheng.media.common.constant.MediaErrorCode;
 import com.xuecheng.media.common.utils.AliyunVODUtil;
 import com.xuecheng.media.controller.MediaAuditController;
@@ -24,6 +26,7 @@ import com.xuecheng.media.entity.Media;
 import com.xuecheng.media.mapper.MediaMapper;
 import com.xuecheng.media.service.MediaService;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -45,6 +48,9 @@ import java.util.List;
 @Slf4j
 @Service
 public class MediaServiceImpl extends ServiceImpl<MediaMapper, Media> implements MediaService {
+
+    @Autowired
+    private ContentApiAgent contentApiAgent;
 
     /**
      * 保存媒资信息的功能实现方法
@@ -211,29 +217,40 @@ public class MediaServiceImpl extends ServiceImpl<MediaMapper, Media> implements
         LambdaQueryWrapper<Media> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(Media::getId, mediaId);
         wrapper.eq(Media::getCompanyId, companyId);
-        Media result = this.getOne(wrapper);
-        if (ObjectUtils.isEmpty(result)) {
+        Media media = this.getOne(wrapper);
+        if (ObjectUtils.isEmpty(media)) {
             ExceptionCast.cast(MediaErrorCode.E_140005);
         }
         // 媒资是否关联课程
+        RestResponse<List<TeachplanMediaDTO>> restResponse = contentApiAgent.getByMediaId4s(mediaId);
 
+        if (!(restResponse.isSuccessful())) {
+            ExceptionCast.castWithCodeAndDesc(restResponse.getCode(), restResponse.getMsg());
+        }
+
+        List<TeachplanMediaDTO> result = restResponse.getResult();
+
+        if (!(CollectionUtils.isEmpty(result))) {
+            ExceptionCast.cast(MediaErrorCode.E_140003);
+        }
         //3.删除媒资信息
-        // 先删除阿里视频信息
+        // 删除本地媒资信息
+        boolean removeResult = this.removeById(media.getId());
+        if (!removeResult) {
+            ExceptionCast.cast(MediaErrorCode.E_140002);
+        }
+        // 删除阿里视频信息
         try {
             DefaultAcsClient client = AliyunVODUtil.initVodClient(region, accessKeyId, accessKeySecret);
 
-            String fileId = result.getFileId();
+            String fileId = media.getFileId();
             AliyunVODUtil.deleteVideo(client, fileId);
 
         } catch (Exception e) {
             log.error(MediaErrorCode.E_140016.getDesc() + " : {}", e.getMessage());
             ExceptionCast.cast(MediaErrorCode.E_140016);
         }
-        // 再删除本地媒资信息
-        boolean removeResult = this.removeById(result.getId());
-        if (!removeResult) {
-            ExceptionCast.cast(MediaErrorCode.E_140002);
-        }
+
     }
 
     /**
